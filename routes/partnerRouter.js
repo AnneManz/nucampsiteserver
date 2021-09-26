@@ -1,13 +1,15 @@
 const express = require("express");
 const partner = require("../models/partner");
+const authenticate = require('../authenticate');
+const cors = require('./cors');
 
 const partnerRouter = express.Router();
 
 partnerRouter.use(bodyParser.json());
 
-partnerRouter
-    .route("/")
-    .get((req, res, next) => {
+partnerRouter.route("/")
+    .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+    .get(cors.cors, (req, res, next) => {
         Partner.find()
             .then((partners) => {
                 res.statusCode = 200;
@@ -16,7 +18,7 @@ partnerRouter
             })
             .catch((err) => next(err));
     })
-    .post((req, res, next) => {
+    .post(cors.corsWithOptions,authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Partner.create(req.body)
             .then((partner) => {
                 console.log("Partner Created ", partner);
@@ -26,11 +28,11 @@ partnerRouter
             })
             .catch((err) => next(err));
     })
-    .put((req, res) => {
+    .put(cors.corsWithOptions, authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
         res.end("PUT operation not supported on /partners");
     })
-    .delete((req, res, next) => {
+    .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Partner.deleteMany()
             .then((response) => {
                 res.statusCode = 200;
@@ -42,7 +44,8 @@ partnerRouter
 
 partnerRouter
     .route("/:partnerId")
-    .get((req, res, next) => {
+    .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+    .get(cors.cors, (req, res, next) => {
         Partner.findById(req.params.partnerId)
             .then((partner) => {
                 res.statusCode = 200;
@@ -51,13 +54,13 @@ partnerRouter
             })
             .catch((err) => next(err));
     })
-    .post((req, res) => {
+    .post(cors.corsWithOptions, authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
         res.end(
             `POST operation not supported on /partners/${req.params.partnerId}`
         );
     })
-    .put((req, res, next) => {
+    .put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Partner.findByIdAndUpdate(
             req.params.partnerId,
             {
@@ -72,7 +75,7 @@ partnerRouter
             })
             .catch((err) => next(err));
     })
-    .delete((req, res, next) => {
+    .delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Partner.findByIdAndDelete(req.params.partnerId)
             .then((response) => {
                 res.statusCode = 200;
@@ -84,7 +87,8 @@ partnerRouter
 
 partnerRouter
     .route("/:partnerId/comments")
-    .get((req, res, next) => {
+    .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+    .get(cors.cors, (req, res, next) => {
         Partner.findById(req.params.partnerId)
             .then((partner) => {
                 if (partner) {
@@ -101,7 +105,7 @@ partnerRouter
             })
             .catch((err) => next(err));
     })
-    .post((req, res, next) => {
+    .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         Partner.findById(req.params.partnerId)
             .then((partner) => {
                 if (partner) {
@@ -124,13 +128,13 @@ partnerRouter
             })
             .catch((err) => next(err));
     })
-    .put((req, res) => {
+    .put(cors.corsWithOptions, authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
         res.end(
             `PUT operation not supported on /partners/${req.params.partnerId}/comments`
         );
     })
-    .delete((req, res, next) => {
+    .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         Partner.findById(req.params.partnerId)
             .then((partner) => {
                 if (partner) {
@@ -158,7 +162,8 @@ partnerRouter
 
 partnerRouter
     .route("/:partnerId/comments/:commentId")
-    .get((req, res, next) => {
+    .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+    .get(cors.cors, (req, res, next) => {
         Partner.findById(req.params.partnerId)
             .then((partner) => {
                 if (partner && partner.comments.id(req.params.commentId)) {
@@ -181,13 +186,13 @@ partnerRouter
             })
             .catch((err) => next(err));
     })
-    .post((req, res) => {
+    .post(cors.corsWithOptions, authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
         res.end(
             `POST operation not supported on /partners/${req.params.partnerId}/comments/${req.params.commentId}`
         );
     })
-    .put((req, res, next) => {
+    .put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         Partner.findById(req.params.partnerId)
             .then((partner) => {
                 if (partner && partner.comments.id(req.params.commentId)) {
@@ -223,7 +228,7 @@ partnerRouter
             })
             .catch((err) => next(err));
     })
-    .delete((req, res, next) => {
+    .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         Partner.findById(req.params.partnerId)
             .then((partner) => {
                 if (partner && partner.comments.id(req.params.commentId)) {
